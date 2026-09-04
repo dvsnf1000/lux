@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coelho Clicker - Troca de Fotos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+      body {
+            background-color: #ffe6f0;
+            display: flex;
+            flex-direction: column; /* Empilha a quest acima do jogo */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+       div.quest {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+        .game-container {
+            display: flex;
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .main-section, .shop-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        h1, h2 {
+            color: #d63384;
+            margin-bottom: 15px;
+        }
+
+        .score-box {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .coelho-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .coelho-btn:active {
+            transform: scale(0.95);
+        }
+
+        .coelho-btn img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .shop-item {
+            background: #fff0f5;
+            border: 2px solid #ffccd5;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            text-align: left;
+        }
+
+        .item-info h4 {
+            color: #333;
+        }
+
+        .item-info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .buy-btn {
+            background-color: #d63384;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .buy-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+  <div class="quest">
+    <h1>Lux a luna sumiu farme o maximo de coelhos para conseguir pegar ela.</h1>
+  </div>
+    <div class="game-container">
+        <!-- ÁREA PRINCIPAL -->
+        <div class="main-section">
+            <h1>Coelho Clicker</h1>
+            <div class="score-box">
+                <span id="score">0</span> Cenouras
+                <div style="font-size: 14px; color: #888; margin-top: 5px;">
+                    +<span id="pps">0</span>/segundo
+                </div>
+            </div>
+
+            <button class="coelho-btn" id="clicker">
+                <img src="coelho-simples.png" id="coelho-img" alt="Coelho Atual">
+            </button>
+        </div>
+
+        <!-- LOJA DE COELHOS -->
+        <div class="shop-section">
+            <h2>Loja de Coelhos</h2>
+            <div id="shop-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let cenouras = 0;
+        let pontosPorClique = 1;
+
+        // Cada item agora tem o campo 'imagem' com o caminho para o arquivo da foto
+        const lojaItems = [
+            { id: 0, nome: "Coelho pallas", custo: 15, pps: 1, quantidade: 0, imagem: "https://media1.tenor.com/m/oha0iXV0KpwAAAAC/manyl.gif" },
+            { id: 1, nome: "Coelho nerdola", custo: 100, pps: 5, quantidade: 0, imagem: "https://media.tenor.com/u5N1URH3TYMAAAAi/bunny.gif" },
+            { id: 2, nome: "Coelho da roma", custo: 500, pps: 20, quantidade: 0, imagem: "https://media1.tenor.com/m/9clcx4DcC6gAAAAd/bunny-clock.gif" },
+            { id: 3, nome: "Coelho chips", custo: 2000, pps: 100, quantidade: 0, imagem: "https://media1.tenor.com/m/qvO6hpbEqqgAAAAC/cute-bunny.gif" },
+            { id: 4, nome: "Coelho Secreto", custo: 5000, pps: 100, quantidade: 0, imagem: "luna.jpg" },
+        ];
+
+        const scoreEl = document.getElementById('score');
+        const ppsEl = document.getElementById('pps');
+        const clickerBtn = document.getElementById('clicker');
+        const coelhoImg = document.getElementById('coelho-img');
+        const shopContainer = document.getElementById('shop-container');
+
+        function criarLoja() {
+            shopContainer.innerHTML = '';
+            lojaItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shop-item';
+                itemDiv.innerHTML = `
+                    <div class="item-info">
+                        <h4>${item.nome} (${item.quantidade})</h4>
+                        <p>+${item.pps} cenouras/s | Custo: ${item.custo}</p>
+                    </div>
+                    <button class="buy-btn" id="btn-item-${item.id}" onclick="comprarItem(${item.id})">
+                        Comprar
+                    </button>
+                `;
+                shopContainer.appendChild(itemDiv);
+            });
+        }
+
+        function calcularPontosPorSegundo() {
+            return lojaItems.reduce((total, item) => total + (item.pps * item.quantidade), 0);
+        }
+
+        function atualizarTela() {
+            scoreEl.textContent = Math.floor(cenouras);
+            ppsEl.textContent = calcularPontosPorSegundo();
+
+            lojaItems.forEach(item => {
+                const btn = document.getElementById(`btn-item-${item.id}`);
+                if (btn) {
+                    btn.disabled = cenouras < item.custo;
+                }
+            });
+        }
+
+        function comprarItem(id) {
+            const item = lojaItems.find(i => i.id === id);
+            if (item && cenouras >= item.custo) {
+                cenouras -= item.custo;
+                item.quantidade++;
+                item.custo = Math.floor(item.custo * 1.4);
+                
+                // Troca a imagem do coelho principal pela imagem do item comprado
+                coelhoImg.src = item.imagem;
+
+                criarLoja();
+                atualizarTela();
+            }
+        }
+
+        clickerBtn.addEventListener('click', () => {
+            cenouras += pontosPorClique;
+            atualizarTela();
+        });
+
+        setInterval(() => {
+            const pps = calcularPontosPorSegundo();
+            if (pps > 0) {
+                cenouras += pps;
+                atualizarTela();
+            }
+        }, 1000);
+
+        criarLoja();
+        atualizarTela();
+    </script>
+</body>
+</html>
