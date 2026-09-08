@@ -11,11 +11,67 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        /* Container da Tela de Vitória (Modal) */
+.win-modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Caixa de Conteúdo do Modal */
+.win-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    animation: popIn 0.3s ease-out;
+}
+
+.win-content h2 {
+    color: #d63384;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.win-content img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: 15px 0;
+    border: 4px solid #ffccd5;
+}
+
+.close-btn {
+    background-color: #d63384;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
 
       body {
             background-color: #ffe6f0;
             display: flex;
-            flex-direction: column; /* Empilha a quest acima do jogo */
+            flex-direction: column; 
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -142,91 +198,119 @@
             <h2>Loja de Coelhos</h2>
             <div id="shop-container"></div>
         </div>
+        
+        <div id="win-modal" class="win-modal">
+    <div class="win-content">
+        <h2>🎉 Parabéns! 🎉</h2>
+        <p>Você encontrou a Luna!</p>
+        <img src="luna.jpg" alt="Luna Encontrada">
+        <p>Você farmou coelhos suficientes e salvou o dia!</p>
+        <button class="close-btn" onclick="fecharModal()">Continuar Jogando</button>
+    </div>
+</div>
     </div>
 
     <script>
-        let cenouras = 0;
-        let pontosPorClique = 1;
+    let cenouras = 0;
+    let pontosPorClique = 1;
 
-        // Cada item agora tem o campo 'imagem' com o caminho para o arquivo da foto
-        const lojaItems = [
-            { id: 0, nome: "Coelho pallas", custo: 15, pps: 1, quantidade: 0, imagem: "https://media1.tenor.com/m/oha0iXV0KpwAAAAC/manyl.gif" },
-            { id: 1, nome: "Coelho nerdola", custo: 100, pps: 20, quantidade: 0, imagem: "https://media.tenor.com/u5N1URH3TYMAAAAi/bunny.gif" },
-            { id: 2, nome: "Coelho da roma", custo: 500, pps: 50, quantidade: 0, imagem: "https://media1.tenor.com/m/9clcx4DcC6gAAAAd/bunny-clock.gif" },
-            { id: 3, nome: "Coelho chips", custo: 2000, pps: 100, quantidade: 0, imagem: "https://media1.tenor.com/m/qvO6hpbEqqgAAAAC/cute-bunny.gif" },
-            { id: 4, nome: "Coelho Secreto", custo: 5000, pps: 10000, quantidade: 0, imagem: "luna.jpg" },
-        ];
+    const lojaItems = [
+        { id: 0, nome: "Coelho pallas", custo: 15, pps: 5, quantidade: 0, imagem: "https://media1.tenor.com/m/oha0iXV0KpwAAAAC/manyl.gif" },
+        { id: 1, nome: "Coelho nerdola", custo: 100, pps: 20, quantidade: 0, imagem: "https://media.tenor.com/u5N1URH3TYMAAAAi/bunny.gif" },
+        { id: 2, nome: "Coelho da roma", custo: 500, pps: 50, quantidade: 0, imagem: "https://media1.tenor.com/m/9clcx4DcC6gAAAAd/bunny-clock.gif" },
+        { id: 3, nome: "Coelho chips", custo: 5000, pps: 200, quantidade: 0, imagem: "https://media1.tenor.com/m/qvO6hpbEqqgAAAAC/cute-bunny.gif" },
+        { id: 4, nome: "Coelho assasino", custo: 10000, pps: 4000, quantidade: 0, imagem: "https://i.pinimg.com/736x/ea/a4/ef/eaa4efedb7968537c5b97b265246e0b0.jpg" },
+        { id: 5, nome: "Coelho pancake", custo: 50000, pps: 8000, quantidade: 0, imagem: "https://i.pinimg.com/736x/56/83/97/5683975c231a305bc44030ab71d2d876.jpg" },
+        { id: 6, nome: "Coelho pão", custo: 100000, pps: 10000, quantidade: 0, imagem: "https://i.pinimg.com/736x/42/a4/31/42a43149e07e0a2801ae0bae9966f7b8.jpg" },
+        { id: 7, nome: "Coelho dos computers", custo: 500000, pps: 50000, quantidade: 0, imagem: "https://i.pinimg.com/736x/4a/46/33/4a4633422b011e3e8f5395fee942ff71.jpg" },
+        { id: 8, nome: "Coelho Secreto", custo: 1000000, pps: 1000000, quantidade: 0, imagem: "luna.jpg" },
+    ];
 
-        const scoreEl = document.getElementById('score');
-        const ppsEl = document.getElementById('pps');
-        const clickerBtn = document.getElementById('clicker');
-        const coelhoImg = document.getElementById('coelho-img');
-        const shopContainer = document.getElementById('shop-container');
+    const scoreEl = document.getElementById('score');
+    const ppsEl = document.getElementById('pps');
+    const clickerBtn = document.getElementById('clicker');
+    const coelhoImg = document.getElementById('coelho-img');
+    const shopContainer = document.getElementById('shop-container');
 
-        function criarLoja() {
-            shopContainer.innerHTML = '';
-            lojaItems.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'shop-item';
-                itemDiv.innerHTML = `
-                    <div class="item-info">
-                        <h4>${item.nome} (${item.quantidade})</h4>
-                        <p>+${item.pps} cenouras/s | Custo: ${item.custo}</p>
-                    </div>
-                    <button class="buy-btn" id="btn-item-${item.id}" onclick="comprarItem(${item.id})">
-                        Comprar
-                    </button>
-                `;
-                shopContainer.appendChild(itemDiv);
-            });
-        }
-
-        function calcularPontosPorSegundo() {
-            return lojaItems.reduce((total, item) => total + (item.pps * item.quantidade), 0);
-        }
-
-        function atualizarTela() {
-            scoreEl.textContent = Math.floor(cenouras);
-            ppsEl.textContent = calcularPontosPorSegundo();
-
-            lojaItems.forEach(item => {
-                const btn = document.getElementById(`btn-item-${item.id}`);
-                if (btn) {
-                    btn.disabled = cenouras < item.custo;
-                }
-            });
-        }
-
-        function comprarItem(id) {
-            const item = lojaItems.find(i => i.id === id);
-            if (item && cenouras >= item.custo) {
-                cenouras -= item.custo;
-                item.quantidade++;
-                item.custo = Math.floor(item.custo * 1.4);
-                
-                // Troca a imagem do coelho principal pela imagem do item comprado
-                coelhoImg.src = item.imagem;
-
-                criarLoja();
-                atualizarTela();
-            }
-        }
-
-        clickerBtn.addEventListener('click', () => {
-            cenouras += pontosPorClique;
-            atualizarTela();
+    function criarLoja() {
+        shopContainer.innerHTML = '';
+        lojaItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'shop-item';
+            itemDiv.innerHTML = `
+                <div class="item-info">
+                    <h4>${item.nome} (${item.quantidade})</h4>
+                    <p>+${item.pps} cenouras/s | Custo: ${item.custo}</p>
+                </div>
+                <button class="buy-btn" id="btn-item-${item.id}" onclick="comprarItem(${item.id})">
+                    Comprar
+                </button>
+            `;
+            shopContainer.appendChild(itemDiv);
         });
+    }
 
-        setInterval(() => {
-            const pps = calcularPontosPorSegundo();
-            if (pps > 0) {
-                cenouras += pps;
-                atualizarTela();
+    function calcularPontosPorSegundo() {
+        return lojaItems.reduce((total, item) => total + (item.pps * item.quantidade), 0);
+    }
+
+    function atualizarTela() {
+        scoreEl.textContent = Math.floor(cenouras);
+        ppsEl.textContent = calcularPontosPorSegundo();
+
+        lojaItems.forEach(item => {
+            const btn = document.getElementById(`btn-item-${item.id}`);
+            if (btn) {
+                btn.disabled = cenouras < item.custo;
             }
-        }, 1000);
+        });
+    }
 
-        criarLoja();
+    function comprarItem(id) {
+        const item = lojaItems.find(i => i.id === id);
+        if (item && cenouras >= item.custo) {
+            cenouras -= item.custo;
+            item.quantidade++;
+            item.custo = Math.floor(item.custo * 1.2);
+            
+            // Troca a imagem do coelho principal
+            coelhoImg.src = item.imagem;
+
+            criarLoja();
+            atualizarTela();
+
+            // CHECAGEM CORRIGIDA: Checa se comprou o Coelho Secreto (id 8)
+            if (item.id === 8 && item.quantidade === 1) {
+                exibirTelaVitoria();
+            }
+        }
+    }
+
+    function exibirTelaVitoria() {
+        const winModal = document.getElementById('win-modal');
+        winModal.style.display = 'flex';
+    }
+
+    function fecharModal() {
+        const winModal = document.getElementById('win-modal');
+        winModal.style.display = 'none';
+    }
+
+    clickerBtn.addEventListener('click', () => {
+        cenouras += pontosPorClique;
         atualizarTela();
-    </script>
+    });
+
+    setInterval(() => {
+        const pps = calcularPontosPorSegundo();
+        if (pps > 0) {
+            cenouras += pps;
+            atualizarTela();
+        }
+    }, 1000);
+
+    criarLoja();
+    atualizarTela();
+</script>
 </body>
 </html>
